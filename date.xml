@@ -1,0 +1,24 @@
+<catalog>
+    <student>
+	    Andrei Popescu
+	    <a>
+	    </a>
+	    <b>
+		    <c>
+			    a
+			    b
+			    c
+			    d
+		    </c>
+	    </b>
+
+    </student>
+    <clasa>
+	a 12-a
+	</clasa>
+	<scoala>
+		CNFB
+	</scoala>
+    <nota>8</nota>
+    <materie>Sisteme de Operare</materie>
+</catalog>
