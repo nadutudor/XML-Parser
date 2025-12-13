@@ -31,13 +31,14 @@ print_tree_tags() {
     local node=$1
     local indent=$2
 
-    echo "${indent}${node}"
+    echo "${indent}<${node}>"
 	if [[ ! -z "${valori[$node]//[[:space:]]/}" ]]; then
 		echo " $indent${valori[$node]}"
 	fi
     for child in ${children[$node]}; do
         print_tree_tags "$child" "  $indent"
     done
+	echo "${indent}</${node}>"
 }
 
 push_stiva "root"
@@ -70,13 +71,12 @@ while IFS="" read -r linie; do
 					pop_stiva
 				else
 					tag_name=""
-					for ((j=i; j<${#linie}; j++)); do
+					for ((j=i+1; j<${#linie}; j++)); do
 						if [[ "${linie:j:1}" == ">" ]]; then
 							break
 						fi
 						tag_name+="${linie:j:1}"
 					done
-					tag_name+=">"
 					i=$j
 					add_child "${stiva[-1]}" "$tag_name"
 					push_stiva "$tag_name"
@@ -86,4 +86,18 @@ while IFS="" read -r linie; do
 			fi
 	done
 done < "$1"
+
 print_tree_tags root ""
+
+if [[ "$2" == "-add_child" ]] || [[ "$2" == "-add_value" ]]; then
+	if [[ -z "$3" ]]; then
+		echo "Introduceti path-ul si valoarea separate prin spatiu: [t1/t2/.../tn value]"
+		exit 1
+	fi
+elif [[ "$2" == "-print_child" ]] || [[ "$2" == "-print_value" ]]; then
+	if [[ -z "$3" ]]; then
+		echo "Introduceti path-ul si valoarea separate prin spatiu: [t1/t2/.../tn value]"
+		exit 1
+	fi
+else exit 1
+fi
