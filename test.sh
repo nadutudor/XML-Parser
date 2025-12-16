@@ -30,11 +30,17 @@ pop_stiva() {
 print_tree_tags() {
     local node=$1
     local indent=$2
+	if [[ "${valori[$node]//[[:space:]]/}" == "<>" ]]; then
+		echo "${indent}<${node}/>"
+		return
+	else
+    	echo "${indent}<${node}>"
+	fi
 
-    echo "${indent}<${node}>"
 	if [[ ! -z "${valori[$node]//[[:space:]]/}" ]]; then
 		echo " $indent${valori[$node]}"
 	fi
+
     for child in ${children[$node]}; do
         print_tree_tags "$child" "  $indent"
     done
@@ -70,9 +76,15 @@ while IFS="" read -r linie; do
 					done
 					pop_stiva
 				else
+					self_closing=0
 					tag_name=""
 					for ((j=i+1; j<${#linie}; j++)); do
 						if [[ "${linie:j:1}" == ">" ]]; then
+							break
+						fi
+						if [[ "${linie:j:1}" == "/" ]]; then
+							j+=1
+							self_closing=1
 							break
 						fi
 						tag_name+="${linie:j:1}"
@@ -80,6 +92,10 @@ while IFS="" read -r linie; do
 					i=$j
 					add_child "${stiva[-1]}" "$tag_name"
 					push_stiva "$tag_name"
+					if [[ $self_closing == 1 ]]; then
+						add_valori "${stiva[-1]}" "<>"
+						pop_stiva
+					fi
 				fi
 			else
 				val+="$char"
@@ -101,3 +117,4 @@ elif [[ "$2" == "-print_child" ]] || [[ "$2" == "-print_value" ]]; then
 	fi
 else exit 1
 fi
+
