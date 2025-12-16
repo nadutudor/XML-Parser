@@ -93,7 +93,7 @@ while IFS="" read -r linie; do
 					add_child "${stiva[-1]}" "$tag_name"
 					push_stiva "$tag_name"
 					if [[ $self_closing == 1 ]]; then
-						add_valori "${stiva[-1]}" "<>"
+						add_child "${stiva[-1]}" "<>"
 						pop_stiva
 					fi
 				fi
@@ -105,6 +105,21 @@ done < "$1"
 
 print_tree_tags root ""
 
+print_path() {
+	local parent=$1
+	for child in ${children[$parent]}; do
+		local temp_path=$abs_path
+		abs_path+=$parent
+		abs_path+=/
+		if [[ $child == $node ]]; then
+			echo "$abs_path$child"
+			exists=1
+		fi
+        print_path $child
+		abs_path=$temp_path
+    done
+}
+
 if [[ "$2" == "-add_child" ]] || [[ "$2" == "-add_value" ]]; then
 	if [[ -z "$3" ]]; then
 		echo "Introduceti path-ul si valoarea separate prin spatiu: [t1/t2/.../tn value]"
@@ -115,6 +130,21 @@ elif [[ "$2" == "-print_child" ]] || [[ "$2" == "-print_value" ]]; then
 		echo "Introduceti path-ul si valoarea separate prin spatiu: [t1/t2/.../tn value]"
 		exit 1
 	fi
+elif [[ "$2" == "-print_path" ]]; then
+	if [[ -z "$3" ]]; then
+		echo "Introduceti tagname-ul elementului pentru care vreti sa afisati path-ul de la radacina."
+		exit 1
+	fi
+	abs_path=""
+	node=$3
+	exists=0
+	print_path root
+	if [[ $exists == "0" ]]; then
+		echo "Tagname-ul introdus nu exista in fisier."
+	 	exit 1
+	fi
 else exit 1
 fi
+
+
 
