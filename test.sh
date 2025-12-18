@@ -162,8 +162,8 @@ if [[ "$2" == "-add_tag" ]]; then
 	fi
 	# add_tag "$3" "$4"
 	(( id_cnt+=1 ))
-	$4="${4}#${id_cnt}"
-	add_child "${3##*/}" "$4"
+	name="${4}#${id_cnt}"
+	add_child "${3##*/}" "$name"
 	print_tree_tags root ""
 elif [[ "$2" == "-add_value" ]]; then
 	if [[ -z "$3" ]]; then
@@ -193,5 +193,6 @@ elif [[ "$2" == "-h" ]]; then
 else print_tree_tags root ""; exit 1
 fi
 
-
-
+# ! De adaugat schimbarea numelui unui tag si a valorilor acestuia !
+# ! De adaugat schimbarea attributes precum ID, class !
+# ! Validitatea sintaxei !
