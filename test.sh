@@ -3,7 +3,8 @@
 declare -A children
 declare -A valori
 declare -a stiva
-
+id_cnt=0
+# valid=1
 add_child() {
     local parent=$1
     local child=$2
@@ -47,20 +48,53 @@ print_tree_tags() {
 	echo "${indent}</${node%%#*}>"
 }
 
-print_path() {
+print_path_curated() {
 	local parent=$1
 	for child in ${children[$parent]}; do
 		local temp_path=$abs_path
-		abs_path+=$parent
+		abs_path+=${parent%%#*}
 		abs_path+=/
-		if [[ $child == $node ]]; then
-			echo "$abs_path$child"
+		if [[ ${child%%#*} == $node ]]; then
+			echo "$abs_path${child%%#*}"
 			exists=1
 		fi
-        print_path $child
+        print_path_curated $child
 		abs_path=$temp_path
     done
 }
+print_path_id() {
+	local parent=$1
+	for child in ${children[$parent]}; do
+		local temp_path=$abs_path
+		abs_path+=${parent}
+		abs_path+=/
+		if [[ ${child%%#*} == $node ]]; then
+			echo "$abs_path${child}"
+			exists=1
+		fi
+        print_path_id $child
+		abs_path=$temp_path
+    done
+}
+
+# add_tag() {
+# 	path=$1
+# 	child=$2
+# 	IFS="/"
+# 	read -ra tags <<< $path
+# 	for((i=${#tags[@]}-1; i>=1; i--)); do
+# 		valid=0
+# 		for tag in ${children["${tags[i-1]}"]}; do
+# 			if [[ "$tag" == "${tags[i]}" ]]; then
+# 				valid=1
+# 				break
+# 			fi
+# 		done
+# 		if [[ $valid == 0 ]]; then
+# 			return
+# 		fi
+# 	done
+# }
 
 push_stiva "root"
 
@@ -76,7 +110,6 @@ if [[ ! -f "$1" ]]; then
 fi
 
 val=""
-id_cnt=0
 while IFS="" read -r linie; do
 	for ((i=0; i<${#linie}; i++)); do
 		char="${linie:i:1}"
@@ -121,18 +154,24 @@ while IFS="" read -r linie; do
 	done
 done < "$1"
 
-print_tree_tags root ""
 
-if [[ "$2" == "-add_child" ]] || [[ "$2" == "-add_value" ]]; then
+if [[ "$2" == "-add_tag" ]]; then
 	if [[ -z "$3" ]]; then
-		echo "Introduceti path-ul si valoarea separate prin spatiu: [t1/t2/.../tn value]"
+		echo "Introduceti tagname-ul (sau path-ul) cu id si valoarea separate prin spatiu: [tagname#id(sau path) value]"
 		exit 1
 	fi
-elif [[ "$2" == "-print_child" ]] || [[ "$2" == "-print_value" ]]; then
+	# add_tag "$3" "$4"
+	(( id_cnt+=1 ))
+	$4="${4}#${id_cnt}"
+	add_child "${3##*/}" "$4"
+	print_tree_tags root ""
+elif [[ "$2" == "-add_value" ]]; then
 	if [[ -z "$3" ]]; then
-		echo "Introduceti path-ul si valoarea separate prin spatiu: [t1/t2/.../tn value]"
+		echo "Introduceti tagname-ul (sau path-ul) cu id si valoarea separate prin spatiu: [tagname#id(sau path) value]"
 		exit 1
 	fi
+	add_valori "${3##*/}" "$4"
+	print_tree_tags root ""
 elif [[ "$2" == "-print_path" ]]; then
 	if [[ -z "$3" ]]; then
 		echo "Introduceti tagname-ul elementului pentru care vreti sa afisati path-ul de la radacina."
@@ -141,12 +180,17 @@ elif [[ "$2" == "-print_path" ]]; then
 	abs_path=""
 	node=$3
 	exists=0
-	print_path root
+	print_path_curated root
+	echo "Path de folosit ca argument pentru celelalte flaguri:"
+	print_path_id root
 	if [[ $exists == "0" ]]; then
 		echo "Tagname-ul introdus nu exista in fisier."
 	 	exit 1
 	fi
-else exit 1
+elif [[ "$2" == "-h" ]]; then
+	echo -e "Flaguri valabile:\n-add_tag\n-add_value\n-print_path"
+	exit 1
+else print_tree_tags root ""; exit 1
 fi
 
 
