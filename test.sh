@@ -30,11 +30,11 @@ pop_stiva() {
 print_tree_tags() {
     local node=$1
     local indent=$2
-	if [[ "${valori[$node]//[[:space:]]/}" == "<>" ]]; then
-		echo "${indent}<${node}/>"
+	if [[ "${children[$node]//[[:space:]]/}" == "<>" ]]; then
+		echo "${indent}<${node%%#*}/>"
 		return
 	else
-    	echo "${indent}<${node}>"
+    	echo "${indent}<${node%%#*}>"
 	fi
 
 	if [[ ! -z "${valori[$node]//[[:space:]]/}" ]]; then
@@ -44,7 +44,22 @@ print_tree_tags() {
     for child in ${children[$node]}; do
         print_tree_tags "$child" "  $indent"
     done
-	echo "${indent}</${node}>"
+	echo "${indent}</${node%%#*}>"
+}
+
+print_path() {
+	local parent=$1
+	for child in ${children[$parent]}; do
+		local temp_path=$abs_path
+		abs_path+=$parent
+		abs_path+=/
+		if [[ $child == $node ]]; then
+			echo "$abs_path$child"
+			exists=1
+		fi
+        print_path $child
+		abs_path=$temp_path
+    done
 }
 
 push_stiva "root"
@@ -61,6 +76,7 @@ if [[ ! -f "$1" ]]; then
 fi
 
 val=""
+id_cnt=0
 while IFS="" read -r linie; do
 	for ((i=0; i<${#linie}; i++)); do
 		char="${linie:i:1}"
@@ -90,6 +106,8 @@ while IFS="" read -r linie; do
 						tag_name+="${linie:j:1}"
 					done
 					i=$j
+					(( id_cnt+=1 ))
+					tag_name="${tag_name}#${id_cnt}" # caracterul '#' nu poate exista intr-un tagname
 					add_child "${stiva[-1]}" "$tag_name"
 					push_stiva "$tag_name"
 					if [[ $self_closing == 1 ]]; then
@@ -104,21 +122,6 @@ while IFS="" read -r linie; do
 done < "$1"
 
 print_tree_tags root ""
-
-print_path() {
-	local parent=$1
-	for child in ${children[$parent]}; do
-		local temp_path=$abs_path
-		abs_path+=$parent
-		abs_path+=/
-		if [[ $child == $node ]]; then
-			echo "$abs_path$child"
-			exists=1
-		fi
-        print_path $child
-		abs_path=$temp_path
-    done
-}
 
 if [[ "$2" == "-add_child" ]] || [[ "$2" == "-add_value" ]]; then
 	if [[ -z "$3" ]]; then
