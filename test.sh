@@ -83,7 +83,7 @@ update_tag() {
 	local new_tag=$2
 	local parent=${path%/*}
 	parent=${parent##*/}
-	if [[ ! -v children[$parent] ]]; then
+	if [[ ! -v children[$old_tag] ]]; then
 		echo "Acest element nu exista."
 		exit 1
 	fi
@@ -92,6 +92,25 @@ update_tag() {
 	unset "children[$old_tag]"
 	valori[$new_tag]="${valori[$old_tag]}"
 	unset "valori[$old_tag]"
+}
+
+update_value() {
+	local path=$1
+	local tag=${path##*/}
+	local parent=${path%/*}
+	parent=${parent##*/}
+	local new_val=$2
+	local mode=$3
+	if [[ ! -v children[$tag] ]]; then
+		echo "Acest element nu exista."
+		exit 1
+	fi
+	if [[ $mode == "-c" ]]; then
+		valori[$tag]=${valori[$tag]}${new_val}
+	elif [[ $mode == "-r" ]]; then
+		valori[$tag]=$new_val
+	else echo -e "Selectati un mod valid:\nConcatenare: -c\nInlocuire: -r"; exit 1
+	fi
 }
 
 # add_tag() {
@@ -117,12 +136,12 @@ push_stiva "root"
 
 # This marks the beginning of the program
 if [[ -z "$1" ]]; then
-	echo -e "Nu a fost introdus fisier\nFlaguri valabile:\n-add_tag\n-add_value\n-print_path\n-update_tag"
+	echo -e "Nu a fost introdus fisier\nFlaguri valabile:\n-add_tag\n-add_value\n-print_path\n-update_tag\n-update_value"
 	exit 1
 fi
 
 if [[ ! -f "$1" ]]; then
-	echo -e "Fisierul dat nu a fost gasit\nFlaguri valabile:\n-add_tag\n-add_value\n-print_path\n-update_tag"
+	echo -e "Fisierul dat nu a fost gasit\nFlaguri valabile:\n-add_tag\n-add_value\n-print_path\n-update_tag\n-update_value"
 	exit 1
 fi
 
@@ -209,13 +228,22 @@ elif [[ "$2" == "-update_tag" ]]; then
 		exit 1
 	fi
 	abs_path=$3
-	new_tag=${4}#${id_cnt}
 	(( id_cnt+=1 ))
+	new_tag=${4}#${id_cnt}
 	update_tag $abs_path $new_tag
+	print_tree_tags root ""
+elif [[ "$2" == "-update_value" ]]; then
+	if [[ -z "$3" || -z "$4" || -z "$5" ]]; then
+		echo -e "Introduceti path-ul elementului valorii pe care vreti sa il schimbati, modul si noua valoare.\nConcatenare: -c\nInlocuire: -r"
+		exit 1
+	fi
+	abs_path=$3
+	mode=$4
+	new_val=$5
+	update_value $abs_path $new_val $mode
 	print_tree_tags root ""
 else print_tree_tags root ""; exit 1
 fi
 
-# ! De adaugat schimbarea numelui unui tag si a valorilor acestuia !
 # ! De adaugat schimbarea attributes precum ID, class !
 # ! Validitatea sintaxei !
