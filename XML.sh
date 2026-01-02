@@ -156,10 +156,16 @@ while IFS="" read -r linie; do
 					val=""
 				fi
 				if [[ "${linie:((i+1)):1}" == "/" ]]; then
+					((i+=2))
+					close_tag=""
 					while [[ "${linie:i:1}" != ">" ]]; do
+						close_tag+="${linie:i:1}"
 						((i++))
 					done
-					pop_stiva
+					if [[ "$close_tag" == "${stiva[-1]%%#*}" ]]; then
+						pop_stiva
+					else echo "Sintaxa nu este valida, tagul ${stiva[-1]%%#*} nu a fost inchis corect."; exit 1
+					fi
 				else
 					self_closing=0
 					tag_name=""
@@ -244,6 +250,3 @@ elif [[ "$2" == "-update_value" ]]; then
 	print_tree_tags root ""
 else print_tree_tags root ""; exit 1
 fi
-
-# ! De adaugat schimbarea attributes precum ID, class !
-# ! Validitatea sintaxei !
