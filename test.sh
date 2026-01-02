@@ -77,6 +77,23 @@ print_path_id() {
     done
 }
 
+update_tag() {
+	local path=$1
+	local old_tag=${path##*/}
+	local new_tag=$2
+	local parent=${path%/*}
+	parent=${parent##*/}
+	if [[ ! -v children[$parent] ]]; then
+		echo "Acest element nu exista."
+		exit 1
+	fi
+	children[$parent]="${children[$parent]/$old_tag/$new_tag}"
+	children[$new_tag]="${children[$old_tag]}"
+	unset "children[$old_tag]"
+	valori[$new_tag]="${valori[$old_tag]}"
+	unset "valori[$old_tag]"
+}
+
 # add_tag() {
 # 	path=$1
 # 	child=$2
@@ -100,12 +117,12 @@ push_stiva "root"
 
 # This marks the beginning of the program
 if [[ -z "$1" ]]; then
-	echo "Nu a fost introdus fisier"
+	echo -e "Nu a fost introdus fisier\nFlaguri valabile:\n-add_tag\n-add_value\n-print_path\n-update_tag"
 	exit 1
 fi
 
 if [[ ! -f "$1" ]]; then
-	echo "Fisierul dat nu a fost gasit"
+	echo -e "Fisierul dat nu a fost gasit\nFlaguri valabile:\n-add_tag\n-add_value\n-print_path\n-update_tag"
 	exit 1
 fi
 
@@ -181,15 +198,21 @@ elif [[ "$2" == "-print_path" ]]; then
 	node=$3
 	exists=0
 	print_path_curated root
-	echo "Path de folosit ca argument pentru celelalte flaguri:"
-	print_path_id root
 	if [[ $exists == "0" ]]; then
 		echo "Tagname-ul introdus nu exista in fisier."
 	 	exit 1
+	else echo "Path de folosit ca argument pentru celelalte flaguri:"; print_path_id root
 	fi
-elif [[ "$2" == "-h" ]]; then
-	echo -e "Flaguri valabile:\n-add_tag\n-add_value\n-print_path"
-	exit 1
+elif [[ "$2" == "-update_tag" ]]; then
+	if [[ -z "$3" || -z "$4" ]]; then
+		echo "Introduceti path-ul elementului pe care vreti sa il schimbati si noul tag."
+		exit 1
+	fi
+	abs_path=$3
+	new_tag=${4}#${id_cnt}
+	(( id_cnt+=1 ))
+	update_tag $abs_path $new_tag
+	print_tree_tags root ""
 else print_tree_tags root ""; exit 1
 fi
 
