@@ -113,28 +113,8 @@ update_value() {
 	fi
 }
 
-# add_tag() {
-# 	path=$1
-# 	child=$2
-# 	IFS="/"
-# 	read -ra tags <<< $path
-# 	for((i=${#tags[@]}-1; i>=1; i--)); do
-# 		valid=0
-# 		for tag in ${children["${tags[i-1]}"]}; do
-# 			if [[ "$tag" == "${tags[i]}" ]]; then
-# 				valid=1
-# 				break
-# 			fi
-# 		done
-# 		if [[ $valid == 0 ]]; then
-# 			return
-# 		fi
-# 	done
-# }
-
 push_stiva "root"
 
-# This marks the beginning of the program
 if [[ -z "$1" ]]; then
 	echo -e "Nu a fost introdus fisier\nFlaguri valabile:\n-add_tag\n-add_value\n-print_path\n-update_tag\n-update_value"
 	exit 1
