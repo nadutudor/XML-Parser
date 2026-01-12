@@ -196,57 +196,72 @@ while IFS="" read -r linie; do
 	done
 done < "$1"
 
+while [[ -n "$2" ]]; do
+    if [[ "$2" == "-add_tag" ]]; then
+		if [[ -z "$3" ]]; then
+			echo "Introduceti tagname-ul (sau path-ul) cu id si valoarea separate prin spatiu: [tagname#id(sau path) value]"
+			exit 1
+		fi
+		# add_tag "$3" "$4"
+		(( id_cnt+=1 ))
+		name="${4}#${id_cnt}"
+		add_child "${3##*/}" "$name"
+		shift
+		shift
+		shift 
+	elif [[ "$2" == "-add_value" ]]; then
+		if [[ -z "$3" ]]; then
+			echo "Introduceti tagname-ul (sau path-ul) cu id si valoarea separate prin spatiu: [tagname#id(sau path) value]"
+			exit 1
+		fi
+		add_valori "${3##*/}" "$4"
+		shift
+		shift
+		shift
+	elif [[ "$2" == "-print_path" ]]; then
+		if [[ -z "$3" ]]; then
+			echo "Introduceti tagname-ul elementului pentru care vreti sa afisati path-ul de la radacina."
+			exit 1
+		fi
+		abs_path=""
+		node=$3
+		exists=0
+		print_path_curated root
+		if [[ $exists == "0" ]]; then
+			echo "Tagname-ul introdus nu exista in fisier."
+			exit 1
+		else echo "Path de folosit ca argument pentru celelalte flaguri:"; print_path_id root
+		fi
+		shift
+		shift
+	elif [[ "$2" == "-update_tag" ]]; then
+		if [[ -z "$3" || -z "$4" ]]; then
+			echo "Introduceti path-ul elementului pe care vreti sa il schimbati si noul tag."
+			exit 1
+		fi
+		abs_path=$3
+		(( id_cnt+=1 ))
+		new_tag=${4}#${id_cnt}
+		update_tag $abs_path $new_tag
+		shift
+		shift
+		shift
+	elif [[ "$2" == "-update_value" ]]; then
+		if [[ -z "$3" || -z "$4" || -z "$5" ]]; then
+			echo -e "Introduceti path-ul elementului valorii pe care vreti sa il schimbati, modul si noua valoare.\nConcatenare: -c\nInlocuire: -r"
+			exit 1
+		fi
+		abs_path=$3
+		mode=$4
+		new_val=$5
+		update_value $abs_path $new_val $mode
+		shift
+		shift
+		shift
+		shift
+	fi
+done
 
-if [[ "$2" == "-add_tag" ]]; then
-	if [[ -z "$3" ]]; then
-		echo "Introduceti tagname-ul (sau path-ul) cu id si valoarea separate prin spatiu: [tagname#id(sau path) value]"
-		exit 1
-	fi
-	# add_tag "$3" "$4"
-	(( id_cnt+=1 ))
-	name="${4}#${id_cnt}"
-	add_child "${3##*/}" "$name"
-	print_tree_tags root ""
-elif [[ "$2" == "-add_value" ]]; then
-	if [[ -z "$3" ]]; then
-		echo "Introduceti tagname-ul (sau path-ul) cu id si valoarea separate prin spatiu: [tagname#id(sau path) value]"
-		exit 1
-	fi
-	add_valori "${3##*/}" "$4"
-	print_tree_tags root ""
-elif [[ "$2" == "-print_path" ]]; then
-	if [[ -z "$3" ]]; then
-		echo "Introduceti tagname-ul elementului pentru care vreti sa afisati path-ul de la radacina."
-		exit 1
-	fi
-	abs_path=""
-	node=$3
-	exists=0
-	print_path_curated root
-	if [[ $exists == "0" ]]; then
-		echo "Tagname-ul introdus nu exista in fisier."
-	 	exit 1
-	else echo "Path de folosit ca argument pentru celelalte flaguri:"; print_path_id root
-	fi
-elif [[ "$2" == "-update_tag" ]]; then
-	if [[ -z "$3" || -z "$4" ]]; then
-		echo "Introduceti path-ul elementului pe care vreti sa il schimbati si noul tag."
-		exit 1
-	fi
-	abs_path=$3
-	(( id_cnt+=1 ))
-	new_tag=${4}#${id_cnt}
-	update_tag $abs_path $new_tag
-	print_tree_tags root ""
-elif [[ "$2" == "-update_value" ]]; then
-	if [[ -z "$3" || -z "$4" || -z "$5" ]]; then
-		echo -e "Introduceti path-ul elementului valorii pe care vreti sa il schimbati, modul si noua valoare.\nConcatenare: -c\nInlocuire: -r"
-		exit 1
-	fi
-	abs_path=$3
-	mode=$4
-	new_val=$5
-	update_value $abs_path $new_val $mode
-	print_tree_tags root ""
-else print_tree_tags root ""; exit 1
-fi
+print_tree_tags root "";
+
+

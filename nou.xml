@@ -1,0 +1,34 @@
+<root>
+  <noul_catalog>
+   bye
+    <student>
+       Andrei Popescu   
+      <abc/>
+      <a>
+      </a>
+      <b>
+        <c>
+          a b c d
+        </c>
+      </b>
+      <c>
+        abcd
+      </c>
+    </student>
+    <clasa>
+       a 12-a
+      <abc/>
+    </clasa>
+    <scoala>
+      CNFB
+    </scoala>
+    <nota>
+      8
+    </nota>
+    <materie>
+      Sisteme de Operare
+    </materie>
+    <abc>
+    </abc>
+  </noul_catalog>
+</root>
